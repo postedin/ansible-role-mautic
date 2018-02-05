@@ -13,5 +13,6 @@ galaxy_info:
     - mautic
 
 dependencies:
-  - role: geerlingguy.composer
   - role: geerlingguy.php
+  - role: geerlingguy.git
+  - role: geerlingguy.composer
