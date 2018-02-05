@@ -1,0 +1,29 @@
+---
+- name: install requiremnts
+  apt:
+    name: "{{ item }}"
+    state: present
+    force: yes
+  with_items:
+    - unzip
+    - git
+
+- name: download and unzip mautic
+  unarchive:
+    url: "https://github.com/mautic/mautic/archive/{{ mautic_version }}.zip"
+    dest: "{{mautic_destination}}"
+    remote_src: yes
+
+- name: composer install
+  command: "composer install"
+  args:
+    chdir: "{{mautic_destination}}"
+    creates: "{{mautic_destination}}/vendor/autoload.php"
+
+- name: modify directory permission
+  file:
+    path: "{{mautic_destination}}"
+    state: directory
+    owner: "{{mautic_user}}"
+    group: "{{mautic_group}}"
+    recurse: yes

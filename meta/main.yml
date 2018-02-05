@@ -1,0 +1,17 @@
+galaxy_info:
+  author: Robert Clancy
+  description: Role to install mautic
+  company: Postedin SpA (https://postedin.com)
+
+  issue_tracker_url: https://github.com/postedin/ansible-role-mautic/issues
+
+  license: MIT
+
+  min_ansible_version: 2.2
+
+  galaxy_tags: 
+    - mautic
+
+dependencies:
+  - role: geerlingguy.composer
+  - role: geerlingguy.php
