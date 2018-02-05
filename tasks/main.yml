@@ -1,28 +1,27 @@
 ---
-- name: install requiremnts
+- name: install unzip
   apt:
-    name: "{{ item }}"
-    state: present
-    force: yes
-  with_items:
-    - unzip
+    name: unzip
+    state: installed
 
 - name: download and unzip mautic
   unarchive:
-    url: "https://github.com/mautic/mautic/archive/{{ mautic_version }}.zip"
-    dest: "{{mautic_destination}}"
+    src: "https://github.com/mautic/mautic/archive/{{ mautic_version }}.zip"
+    dest: "/opt"
     remote_src: yes
+    owner: "{{ mautic_user }}"
+    group: "{{ mautic_group }}"
+    creates: "/opt/mautic-{{ mautic_version }}"
+
+- name: copy mautic into directory
+  synchronize:
+    src: "/opt/mautic-{{ mautic_version }}/"
+    dest: "{{ mautic_destination }}"
+  delegate_to: "{{ inventory_hostname }}"
 
 - name: composer install
+  become: no
   command: "composer install"
   args:
-    chdir: "{{mautic_destination}}"
-    creates: "{{mautic_destination}}/vendor/autoload.php"
-
-- name: modify directory permission
-  file:
-    path: "{{mautic_destination}}"
-    state: directory
-    owner: "{{mautic_user}}"
-    group: "{{mautic_group}}"
-    recurse: yes
+    chdir: "{{ mautic_destination }}"
+    creates: "{{ mautic_destination }}/vendor/autoload.php"
