@@ -5,7 +5,6 @@ mautic_destination: /opt/mautic
 mautic_user: www-data
 mautic_group: www-data
 
-mautic_mysql_host: localhost
 mautic_mysql_database: mautic
 mautic_mysql_user: mautic
 mautic_mysql_password: secret

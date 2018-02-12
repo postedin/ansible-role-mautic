@@ -15,10 +15,12 @@ galaxy_info:
 dependencies:
   - role: geerlingguy.php
     php_packages:
+      - php7.0-mysql
       - php7.0-zip
       - php7.0-mcrypt
       - php7.0-bcmath
       - php-amqplib
+      - php7.0-intl
     php_memory_limit: 512M
   - role: geerlingguy.git
   - role: geerlingguy.composer
