@@ -1,13 +1,13 @@
-postedin.mautic
+Ansible Role: Mautic
 =========
+
+`postedin.mautic` <https://galaxy.ansible.com/postedin/mautic/>
 
 This role installs PHP 7.0 (using `geerlingguy.php`, so will keep in sync with that), git (`geerlingguy.git`) and composer (`geerlingguy.composer`).
 
-You can see a playbook using this role here: https://github.com/postedin/ansible-playbook-mautic
+If you want to use different PHP versions you will have to remove `geerlingguy.php` from `meta/main.yml` and then use <https://github.com/geerlingguy/ansible-role-php-versions/> or whatever PHP roles you want.
 
-https://github.com/geerlingguy/ansible-role-php
-https://github.com/geerlingguy/ansible-role-git
-https://github.com/geerlingguy/ansible-role-composer
+You can see a playbook using this role here: <https://github.com/postedin/ansible-playbook-mautic>
 
 Requirements
 ------------
@@ -43,9 +43,11 @@ mautic_destination: "/var/www/{{ domain }}"
 Dependencies
 ------------
 
-https://github.com/geerlingguy/ansible-role-php
-https://github.com/geerlingguy/ansible-role-git
-https://github.com/geerlingguy/ansible-role-composer
+<https://github.com/geerlingguy/ansible-role-php>
+
+<https://github.com/geerlingguy/ansible-role-git>
+
+<https://github.com/geerlingguy/ansible-role-composer>
 
 If using nginx you will need to set...
 
@@ -56,7 +58,7 @@ php_enable_php_fpm: true
 Example Playbook
 ----------------
 
-Copied from https://github.com/postedin/ansible-playbook-mautic. Might be out of date so better to look at the actual playbook.
+Copied from <https://github.com/postedin/ansible-playbook-mautic.> Might be out of date so better to look at the actual playbook.
 
 This playbook...
 
