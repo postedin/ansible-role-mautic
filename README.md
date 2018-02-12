@@ -43,11 +43,11 @@ mautic_destination: "/var/www/{{ domain }}"
 Dependencies
 ------------
 
-<https://github.com/geerlingguy/ansible-role-php>
+`geerlingguy.php` <https://github.com/geerlingguy/ansible-role-php>
 
-<https://github.com/geerlingguy/ansible-role-git>
+`geerlingguy.git` <https://github.com/geerlingguy/ansible-role-git>
 
-<https://github.com/geerlingguy/ansible-role-composer>
+`geerlingguy.composer` <https://github.com/geerlingguy/ansible-role-composer>
 
 If using nginx you will need to set...
 
@@ -199,4 +199,4 @@ MIT
 Author Information
 ------------------
 
-This role was created by [Postedin SpA](https://postedin.com)
+This role was created by [Postedin SpA](https://postedin.com).
