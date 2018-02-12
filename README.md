@@ -1,38 +1,200 @@
-Role Name
+postedin.mautic
 =========
 
-A brief description of the role goes here.
+This role installs PHP 7.0 (using `geerlingguy.php`, so will keep in sync with that), git (`geerlingguy.git`) and composer (`geerlingguy.composer`).
+
+You can see a playbook using this role here: https://github.com/postedin/ansible-playbook-mautic
+
+https://github.com/geerlingguy/ansible-role-php
+https://github.com/geerlingguy/ansible-role-git
+https://github.com/geerlingguy/ansible-role-composer
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+Only used on Ubuntu so might not work on others.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Default variables.
+
+```yaml
+mautic_version: "2.12.1"
+
+mautic_destination: /opt/mautic
+mautic_user: www-data
+mautic_group: www-data
+
+mautic_mysql_database: mautic
+mautic_mysql_user: mautic
+mautic_mysql_password: secret
+```
+
+Example variables we use on Ubuntu with nginx and MySQL locally.
+
+```yaml
+domain: marketing.postedin.com
+mautic_destination: "/var/www/{{ domain }}"
+
+# with a secret.yml which is git ignroed that contains `mautic_mysql_password`
+```
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+https://github.com/geerlingguy/ansible-role-php
+https://github.com/geerlingguy/ansible-role-git
+https://github.com/geerlingguy/ansible-role-composer
+
+If using nginx you will need to set...
+
+```yaml
+php_enable_php_fpm: true
+```
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Copied from https://github.com/postedin/ansible-playbook-mautic. Might be out of date so better to look at the actual playbook.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+This playbook...
+
+- sets domain var to be used everywhere
+- has a secrets.yml for the mysql password
+- adds the `www-data` group to the ubuntu user which we use for everything
+- installs this role which `php_enable_php_fpm: true` and the `mautic_destination`
+- installs mariadb and creates the database and user that mautic wants
+- installs certbot and gets the letsencrypt certificates for the configured domain
+- installs nginx with a vhost to redirect http -> https and the https one to serve mautic
+
+```yaml
+---
+- hosts: web
+  become: yes
+  user: ubuntu
+  vars:
+    php_enable_php_fpm: true
+    domain: marketing.postedin.com
+    mautic_destination: "/var/www/{{ domain }}"
+    mysql_packages:
+      - mariadb-client
+      - mariadb-server
+      - python-mysqldb
+  vars_files:
+    - secret.yml
+  pre_tasks:
+    - name: add www-data group to ubuntu user
+      user: name=ubuntu groups=www-data append=yes
+  roles:
+    - role: postedin.mautic
+    - role: geerlingguy.mysql
+      mysql_databases:
+        - name: "{{ mautic_mysql_database }}"
+      mysql_users:
+        - name: "{{ mautic_mysql_user }}"
+          password: "{{ mautic_mysql_password }}"
+          host: "%"
+          priv: "%.*:ALL"
+    - role: geerlingguy.certbot
+      certbot_admin_email: robbo@postedin.com
+      certbot_create_if_missing: yes
+      certbot_create_standalone_stop_services:
+        - nginx
+      certbot_certs:
+        - domains:
+            - "{{ domain }}"
+    - role: geerlingguy.nginx
+      nginx_vhosts:
+        - listen: "80"
+          server_name: "{{ domain }}"
+          return: "301 https://{{ domain }}$request_uri"
+          filename: "{{ domain }}.80.conf"
+        - listen: "443 ssl http2"
+          server_name: "{{ domain }}"
+          root: "{{ mautic_destination }}"
+          index: index.html index.htm index.php
+          filename: "{{ domain }}.conf"
+          extra_parameters: |
+            rewrite ^/index.php/(.*) /$1  permanent;
+            rewrite ^/(vendor|translations|build)/.* /index.php break;
+
+            location / {
+              try_files $uri /index.php$is_args$args;
+            }
+
+            location ~ ^/app/bundles/.*/Assets/ {
+              allow all;
+              access_log off;
+            }
+
+            location ~ ^/app/ { deny all; }
+
+            location ~ ^/(addons|plugins)/.*/Assets/ {
+              allow all;
+              access_log off;
+            }
+
+            location ~ ^/(addons|plugins)/ { deny all; }
+
+            location ~* ^/themes/(.*)\.php {
+              deny all;
+            }
+
+            location = /favicon.ico {
+              log_not_found off;
+              access_log off;
+            }
+
+            location = /robots.txt  {
+              access_log off;
+              log_not_found off;
+            }
+
+            location ~* /(.*)\.(?:markdown|md|twig|yaml|yml|ht|htaccess|ini)$ {
+              deny all;
+              access_log off;
+              log_not_found off;
+            }
+
+            location ~ /\. {
+              deny all;
+              access_log off;
+              log_not_found off;
+            }
+
+            location ~* (Gruntfile|package|composer)\.(js|json)$ {
+              deny all;
+              access_log off;
+              log_not_found off;
+            }
+
+            location ~ \.php$ {
+              fastcgi_split_path_info ^(.+\.php)(/.+)$;
+              fastcgi_pass 127.0.0.1:9000;
+              fastcgi_index index.php;
+              fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+              include fastcgi_params;
+
+              fastcgi_buffer_size 128k;
+              fastcgi_buffers 256 16k;
+              fastcgi_busy_buffers_size 256k;
+              fastcgi_temp_file_write_size 256k;
+            }
+
+            ssl_certificate /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+            ssl_protocols TLSv1.1 TLSv1.2;
+            ssl_ciphers HIGH:!aNULL:!MD5;
+
+```
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+This role was created by [Postedin SpA](https://postedin.com)
