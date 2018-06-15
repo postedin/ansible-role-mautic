@@ -1,8 +1,8 @@
 ---
 - name: install unzip
-  apt:
+  package:
     name: unzip
-    state: installed
+    state: present
 
 - name: download and unzip mautic
   unarchive:
