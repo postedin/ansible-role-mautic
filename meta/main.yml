@@ -2,26 +2,16 @@ galaxy_info:
   author: Robert Clancy
   description: Role to install mautic
   company: Postedin SpA (https://postedin.com)
+
   issue_tracker_url: https://github.com/postedin/ansible-role-mautic/issues
+
   license: MIT
+
   min_ansible_version: 2.2
-  platforms:
-    - name: EL
-      versions:
-        - 6
-        - 7
-    - name: Fedora
-      versions:
-        - all
-    - name: Debian
-      versions:
-        - all
-    - name: Ubuntu
-      versions:
-        - trusty
-        - xenial
+
   galaxy_tags: 
     - mautic
+
 dependencies:
   - role: geerlingguy.php
     php_packages:

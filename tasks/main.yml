@@ -1,8 +1,8 @@
 ---
 - name: install unzip
-  package:
+  apt:
     name: unzip
-    state: present
+    state: installed
 
 - name: download and unzip mautic
   unarchive:
@@ -18,6 +18,12 @@
     src: "/opt/mautic-{{ mautic_version }}/"
     dest: "{{ mautic_destination }}"
   delegate_to: "{{ inventory_hostname }}"
+
+- name: clear cache
+  become_user: "{{ mautic_user }}"
+  file:
+    state: absent
+    path: "{{ mautic_destination }}/app/cache/prod/"
 
 - name: composer install
   become_user: "{{ mautic_user }}"
